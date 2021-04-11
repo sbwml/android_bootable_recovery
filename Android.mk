@@ -176,6 +176,9 @@ ifeq ($(TW_OEM_BUILD),true)
     BOARD_HAS_NO_REAL_SDCARD := true
     TW_USE_TOOLBOX := true
     TW_EXCLUDE_MTP := true
+    TW_EXCLUDE_TZDATA := true
+    TW_EXCLUDE_NANO := true
+    TW_EXCLUDE_BASH := true
 endif
 
 ifeq ($(TARGET_USERIMAGES_USE_EXT4), true)
@@ -428,6 +431,9 @@ endif
 ifeq ($(TW_EXCLUDE_TWRPAPP),true)
     LOCAL_CFLAGS += -DTW_EXCLUDE_TWRPAPP
 endif
+ifeq ($(TW_EXCLUDE_NANO), true)
+    LOCAL_CFLAGS += -DTW_EXCLUDE_NANO
+endif
 
 TWRP_REQUIRED_MODULES += \
     dump_image \
@@ -526,6 +532,20 @@ ifeq ($(TWRP_INCLUDE_LOGCAT), true)
                     cp $(TARGET_OUT_ETC)/event-log-tags $(TARGET_RECOVERY_ROOT_OUT)/system/etc/;
             endif
         endif
+    endif
+endif
+ifneq ($(TW_EXCLUDE_TZDATA), true)
+    TWRP_REQUIRED_MODULES += tzdata_twrp
+endif
+ifneq ($(TW_EXCLUDE_NANO), true)
+    TWRP_REQUIRED_MODULES += \
+        nano_twrp \
+        init.recovery.nano.rc
+endif
+ifneq ($(TW_EXCLUDE_BASH), true)
+    ifneq ($(wildcard external/bash/.),)
+        TWRP_REQUIRED_MODULES += \
+            bash_twrp
     endif
 endif
 # Allow devices to specify device-specific recovery dependencies

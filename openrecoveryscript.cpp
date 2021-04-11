@@ -156,12 +156,21 @@ int OpenRecoveryScript::run_script_file(void) {
 					PartitionManager.Wipe_By_Path("/cache");
 				} else if (strcmp(value, "system") == 0 || strcmp(value, "/system") == 0 || strcmp(value, PartitionManager.Get_Android_Root_Path().c_str()) == 0) {
 					PartitionManager.Wipe_By_Path("/system");
+					PartitionManager.Update_System_Details();
 				} else if (strcmp(value, "dalvik") == 0 || strcmp(value, "dalvick") == 0 || strcmp(value, "dalvikcache") == 0 || strcmp(value, "dalvickcache") == 0) {
 					PartitionManager.Wipe_Dalvik_Cache();
 				} else if (strcmp(value, "data") == 0 || strcmp(value, "/data") == 0 || strcmp(value, "factory") == 0 || strcmp(value, "factoryreset") == 0) {
 					PartitionManager.Factory_Reset();
 				} else {
 					LOGERR("Error with wipe command value: '%s'\n", value);
+					ret_val = 1;
+				}
+			} else if (strcmp(command, "format") == 0) {
+				// Format
+				if (strcmp(value, "data") == 0 || strcmp(value, "/data") == 0 || strcmp(value, "factory") == 0 || strcmp(value, "factoryreset") == 0) {
+					PartitionManager.Format_Data();
+				} else {
+					LOGERR("Error with format command value: '%s'\n", value);
 					ret_val = 1;
 				}
 			} else if (strcmp(command, "backup") == 0) {
@@ -387,6 +396,7 @@ int OpenRecoveryScript::run_script_file(void) {
 				} else {
 					ret_val = 1; // failure
 				}
+				PartitionManager.Update_System_Details();
 				sideload = 1; // Causes device to go to the home screen afterwards
 				if (sideload_child_pid != 0) {
 					LOGINFO("Signaling child sideload process to exit.\n");

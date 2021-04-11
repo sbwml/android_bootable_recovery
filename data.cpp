@@ -573,7 +573,7 @@ void DataManager::SetBackupFolder()
 {
 	string str = GetCurrentStoragePath();
 	TWPartition* partition = PartitionManager.Find_Partition_By_Path(str);
-	str += "/TWRP/BACKUPS/";
+	str += TWFunc::Check_For_TwrpFolder() + "/BACKUPS/";
 
 	string dev_id;
 	GetValue("device_id", dev_id);
@@ -660,9 +660,11 @@ void DataManager::SetDefaultValues()
 	mConst.SetValue(TW_SHOW_DUMLOCK, "0");
 #endif
 
+	mData.SetValue(TW_RECOVERY_FOLDER_VAR, TW_DEFAULT_RECOVERY_FOLDER);
+
 	str = GetCurrentStoragePath();
 	mPersist.SetValue(TW_ZIP_LOCATION_VAR, str);
-	str += "/TWRP/BACKUPS/";
+	str += DataManager::GetStrValue(TW_RECOVERY_FOLDER_VAR) + "/BACKUPS/";
 
 	string dev_id;
 	mConst.GetValue("device_id", dev_id);
@@ -792,6 +794,7 @@ void DataManager::SetDefaultValues()
 	mPersist.SetValue(TW_GUI_SORT_ORDER, "1");
 	mPersist.SetValue(TW_RM_RF_VAR, "0");
 	mPersist.SetValue(TW_SKIP_DIGEST_CHECK_VAR, "0");
+	mPersist.SetValue(TW_SKIP_DIGEST_CHECK_ZIP_VAR, "1");
 	mPersist.SetValue(TW_SKIP_DIGEST_GENERATE_VAR, "0");
 	mPersist.SetValue(TW_SDEXT_SIZE, "0");
 	mPersist.SetValue(TW_SWAP_SIZE, "0");
@@ -960,6 +963,15 @@ void DataManager::SetDefaultValues()
 	mData.SetValue("tw_app_installed_in_system", "0");
   #endif
 #endif
+#ifndef TW_EXCLUDE_NANO
+	mConst.SetValue("tw_include_nano", "1");
+#else
+	LOGINFO("TW_EXCLUDE_NANO := true\n");
+	mConst.SetValue("tw_include_nano", "0");
+#endif
+
+	mData.SetValue("tw_flash_both_slots", "0");
+	mData.SetValue("tw_is_slot_part", "0");
 
 	mData.SetValue("tw_enable_adb_backup", "0");
 
@@ -1146,8 +1158,8 @@ void DataManager::ReadSettingsFile(void)
 
 	memset(mkdir_path, 0, sizeof(mkdir_path));
 	memset(settings_file, 0, sizeof(settings_file));
-	sprintf(mkdir_path, "%s/TWRP", GetSettingsStoragePath().c_str());
-	sprintf(settings_file, "%s/.twrps", mkdir_path);
+	sprintf(mkdir_path, "%s%s", GetSettingsStoragePath().c_str(), GetStrValue(TW_RECOVERY_FOLDER_VAR).c_str());
+	sprintf(settings_file, "%s/%s", mkdir_path, TW_SETTINGS_FILE);
 
 	if (!PartitionManager.Mount_Settings_Storage(false))
 	{
@@ -1186,4 +1198,12 @@ void DataManager::Vibrate(const string& varName)
 		vibrate(vib_value);
 	}
 #endif
+}
+
+
+void DataManager::LoadTWRPFolderInfo(void)
+{
+	string mainPath = GetCurrentStoragePath();
+	SetValue(TW_RECOVERY_FOLDER_VAR, TWFunc::Check_For_TwrpFolder());
+	mBackingFile = mainPath + GetStrValue(TW_RECOVERY_FOLDER_VAR) + '/' + TW_SETTINGS_FILE;
 }
